@@ -18,7 +18,7 @@ export class NetworkingStack extends cdk.Stack {
 
     const prefix = props?.logicalEnv;
     const vpc = new Vpc(this, 'Vpc');
-    Tags.of(vpc).add('name', `${prefix}-vpc`);
+    Tags.of(vpc).add('Name', `${prefix}-vpc`);
 
     // outputs
     this.vpc = new CfnOutput(this, 'VpcId', {

@@ -8,6 +8,7 @@ import { CdkPipeline, ShellScriptAction, SimpleSynthAction } from "@aws-cdk/pipe
 import * as ssm from '@aws-cdk/aws-ssm';
 import { AuditServiceDeployStage } from "./audit-service-sample-stage";
 import { NetworkingDeployStage } from "./networking-stage";
+import { LinuxBuildImage } from "@aws-cdk/aws-codebuild";
 
 export class PipelineStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -33,6 +34,9 @@ export class PipelineStack extends Stack {
 
       // build
       synthAction: SimpleSynthAction.standardNpmSynth({
+        environment: {
+          buildImage: LinuxBuildImage.STANDARD_5_0
+        },
         sourceArtifact: sourceArtifacts,
         cloudAssemblyArtifact: cloudAssemblyArtifacts,
         buildCommand: 'npm run build',
@@ -44,16 +48,16 @@ export class PipelineStack extends Stack {
     const stagingEnvName = 'staging';
 
     // networking
-    const networkingStagingDeploy = new NetworkingDeployStage(this, 'NetworkingStaging', {
-      logicalEnv: stagingEnvName
+    const networkingStagingDeploy = new NetworkingDeployStage(this, 'Staging-Networking', {
+      logicalEnv: stagingEnvName,
     });
     pipeline.addApplicationStage(networkingStagingDeploy);
 
     // database
 
     // service
-    const serviceStagingDeploy = new AuditServiceDeployStage(this, 'AuditServiceStaging', {
-      logicalEnv: stagingEnvName
+    const serviceStagingDeploy = new AuditServiceDeployStage(this, 'Staging-AuditService', {
+      logicalEnv: stagingEnvName,
     });
     const stagingStage = pipeline.addApplicationStage(serviceStagingDeploy);
 
@@ -87,7 +91,7 @@ export class PipelineStack extends Stack {
     // networking
     // database
     // service
-    pipeline.addApplicationStage(new AuditServiceDeployStage(this, 'AuditServiceProduction', {
+    pipeline.addApplicationStage(new AuditServiceDeployStage(this, 'Production-AuditService', {
       logicalEnv: productionEnvName
     }), {
       manualApprovals: true
