@@ -7,7 +7,7 @@ import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions';
 import { CdkPipeline, ShellScriptAction, SimpleSynthAction } from "@aws-cdk/pipelines";
 import * as ssm from '@aws-cdk/aws-ssm';
 import { AuditServiceDeployStage } from "./audit-service-sample-stage";
-import { NetworkingDeployStage } from "./networking-stage";
+import { CommonDeployStage } from "./common-stage";
 
 export class PipelineStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -43,16 +43,14 @@ export class PipelineStack extends Stack {
     // deploy to staging
     const stagingEnvName = 'staging';
 
-    // networking
-    const networkingStagingDeploy = new NetworkingDeployStage(this, 'NetworkingStaging', {
+    // commmon infrastructure: networking and database
+    const commonStagingDeploy = new CommonDeployStage(this, 'Staging-Common', {
       logicalEnv: stagingEnvName
     });
-    pipeline.addApplicationStage(networkingStagingDeploy);
-
-    // database
+    pipeline.addApplicationStage(commonStagingDeploy);
 
     // service
-    const serviceStagingDeploy = new AuditServiceDeployStage(this, 'AuditServiceStaging', {
+    const serviceStagingDeploy = new AuditServiceDeployStage(this, 'Staging-AuditService', {
       logicalEnv: stagingEnvName
     });
     const stagingStage = pipeline.addApplicationStage(serviceStagingDeploy);
@@ -84,10 +82,9 @@ export class PipelineStack extends Stack {
     // deploy to production
     const productionEnvName = 'production';
 
-    // networking
-    // database
+    // common
     // service
-    pipeline.addApplicationStage(new AuditServiceDeployStage(this, 'AuditServiceProduction', {
+    pipeline.addApplicationStage(new AuditServiceDeployStage(this, 'Production-AuditService', {
       logicalEnv: productionEnvName
     }), {
       manualApprovals: true
