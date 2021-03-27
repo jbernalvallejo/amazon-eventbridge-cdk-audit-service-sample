@@ -32,7 +32,6 @@ echo "  - Done."
 echo "  - Executing unit tests..."
 npm test
 
-
 echo "********************************************"
 echo "* Success                                  *"
 echo "********************************************"
