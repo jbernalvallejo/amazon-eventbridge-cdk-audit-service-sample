@@ -32,6 +32,15 @@ echo "  - Done."
 echo "  - Executing unit tests..."
 npm test
 
+cd ../save-to-docdb
+echo "- save-to-docdb"
+echo "  - Installing dependencies..."
+npm ci
+echo "  - Done."
+echo "  - Compiling Typescript files..."
+npm run build
+echo "  - Done."
+
 echo "********************************************"
 echo "* Success                                  *"
 echo "********************************************"

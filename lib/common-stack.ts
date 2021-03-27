@@ -4,7 +4,7 @@
 import { DatabaseCluster } from '@aws-cdk/aws-docdb';
 import { InstanceClass, InstanceSize, InstanceType, Vpc } from '@aws-cdk/aws-ec2';
 import * as cdk from '@aws-cdk/core';
-import { Tags } from '@aws-cdk/core';
+import { CfnOutput, Tags } from '@aws-cdk/core';
 
 interface CommonStackProps extends cdk.StackProps {
   logicalEnv: string;
@@ -31,5 +31,12 @@ export class CommonStack extends cdk.Stack {
     });
 
     cluster.addRotationSingleUser();
+
+    // outputs
+    new CfnOutput(this, 'SecretName', {
+      exportName: `${prefix}-audit-db-secret-name`,
+      value: cluster.secret!.secretName,
+      description: 'Secret name for Audit Events database'
+    });
   }
 }

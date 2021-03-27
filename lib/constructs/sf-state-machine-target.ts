@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import { Construct } from "@aws-cdk/core";
+import { Construct, Fn } from "@aws-cdk/core";
 
 import { AttributeType, BillingMode, Table } from "@aws-cdk/aws-dynamodb";
 import { Code, Runtime, Tracing, Function } from "@aws-cdk/aws-lambda";
@@ -9,6 +9,8 @@ import { Bucket, BucketEncryption } from "@aws-cdk/aws-s3";
 
 import { JsonPath, StateMachine } from "@aws-cdk/aws-stepfunctions";
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
+
+import { ManagedPolicy, Role, ServicePrincipal } from '@aws-cdk/aws-iam';
 
 interface StateMachineTargetProps {
   logicalEnv: string;
@@ -32,7 +34,7 @@ export class StateMachineTarget extends Construct {
       encryption: BucketEncryption.KMS_MANAGED
     });
 
-    // lambda function
+    // lambda function to save to s3
     const saveToS3Fn = new Function(this, 'SaveToS3Fn', {
       functionName: `${prefix}-save-to-s3`,
       runtime: Runtime.NODEJS_12_X,
@@ -45,6 +47,25 @@ export class StateMachineTarget extends Construct {
     });
 
     this.bucket.grantWrite(saveToS3Fn);
+
+    // lambda function to save to documentdb
+    const saveToDocDbRole = new Role(this, 'SaveToDocDbRole', {
+      assumedBy: new ServicePrincipal('lambda.amazonaws.com')
+    }); 
+    saveToDocDbRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'));
+    // TODO narrow down to only need operation: read a particular secret
+    saveToDocDbRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'));
+
+    new Function(this, 'SaveToDocumentDbFn', {
+      functionName: `${prefix}-save-to-docdb`,
+      runtime: Runtime.NODEJS_12_X,
+      handler: 'index.handler',
+      code: Code.fromAsset('./lib/lambda/save-to-docdb'),
+      environment: {
+        AUDIT_DB_SECRET_NAME: Fn.importValue(`${prefix}-audit-db-secret-name`)
+      },
+      role: saveToDocDbRole
+    });
 
     // dynamodb table
     this.table = new Table(this, 'AuditEventTable', {

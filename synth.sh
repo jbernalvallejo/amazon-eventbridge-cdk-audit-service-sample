@@ -6,7 +6,7 @@
 set -euo pipefail
 
 echo "********************************************"
-echo "* Synthesizing Audit Service sample *"
+echo "* Synthesizing Audit Service sample        *"
 echo "********************************************"
 echo ;
 
@@ -15,6 +15,11 @@ cd lib/lambda/
 
 cd save-to-s3
 echo "- save-to-s3"
+npm prune --production
+echo "- Done."
+
+cd ../save-to-docdb
+echo "- save-to-docdb"
 npm prune --production
 echo "- Done."
 
