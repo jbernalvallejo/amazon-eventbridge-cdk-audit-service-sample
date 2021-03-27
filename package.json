@@ -24,7 +24,6 @@
     "typescript": "~3.9.7"
   },
   "dependencies": {
-    "@aws-cdk/aws-codebuild": "^1.95.1",
     "@aws-cdk/aws-codepipeline": "^1.95.1",
     "@aws-cdk/aws-codepipeline-actions": "^1.95.1",
     "@aws-cdk/aws-dynamodb": "^1.95.1",
