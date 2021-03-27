@@ -7,6 +7,7 @@ import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions';
 import { CdkPipeline, ShellScriptAction, SimpleSynthAction } from "@aws-cdk/pipelines";
 import * as ssm from '@aws-cdk/aws-ssm';
 import { AuditServiceDeployStage } from "./audit-service-sample-stage";
+import { NetworkingDeployStage } from "./networking-stage";
 
 export class PipelineStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -27,7 +28,7 @@ export class PipelineStack extends Stack {
         owner: ssm.StringParameter.fromStringParameterName(this, 'GithubUsername', 'github_username').stringValue,
         repo: 'amazon-eventbridge-cdk-audit-service-sample',
         oauthToken: SecretValue.secretsManager('github_token', { jsonField: 'github_token' }),
-        branch: 'main'
+        branch: 'aws-summit-2021'
       }),
 
       // build
@@ -40,19 +41,31 @@ export class PipelineStack extends Stack {
     });
 
     // deploy to staging
-    const stagingDeploy = new AuditServiceDeployStage(this, 'Staging', {
-      logicalEnv: 'staging'
-    });
-    const stagingStage = pipeline.addApplicationStage(stagingDeploy);
+    const stagingEnvName = 'staging';
 
+    // networking
+    const networkingStagingDeploy = new NetworkingDeployStage(this, 'NetworkingStaging', {
+      logicalEnv: stagingEnvName
+    });
+    pipeline.addApplicationStage(networkingStagingDeploy);
+
+    // database
+
+    // service
+    const serviceStagingDeploy = new AuditServiceDeployStage(this, 'AuditServiceStaging', {
+      logicalEnv: stagingEnvName
+    });
+    const stagingStage = pipeline.addApplicationStage(serviceStagingDeploy);
+
+    // e2e-tests
     const e2eTestAction = new ShellScriptAction({
       actionName: 'Test',
       useOutputs: {
-        AUDIT_EVENT_BUS_NAME: pipeline.stackOutput(stagingDeploy.busName),
-        AUDIT_BUCKET_NAME: pipeline.stackOutput(stagingDeploy.bucketName),
-        AUDIT_TABLE_NAME: pipeline.stackOutput(stagingDeploy.tableName),
-        AUDIT_LOG_GROUP_NAME: pipeline.stackOutput(stagingDeploy.logGroupName),
-        AUDIT_TOPIC_NAME: pipeline.stackOutput(stagingDeploy.topicName)
+        AUDIT_EVENT_BUS_NAME: pipeline.stackOutput(serviceStagingDeploy.busName),
+        AUDIT_BUCKET_NAME: pipeline.stackOutput(serviceStagingDeploy.bucketName),
+        AUDIT_TABLE_NAME: pipeline.stackOutput(serviceStagingDeploy.tableName),
+        AUDIT_LOG_GROUP_NAME: pipeline.stackOutput(serviceStagingDeploy.logGroupName),
+        AUDIT_TOPIC_NAME: pipeline.stackOutput(serviceStagingDeploy.topicName)
       },
       additionalArtifacts: [sourceArtifacts],
       commands: [
@@ -69,8 +82,13 @@ export class PipelineStack extends Stack {
     e2eTestAction.project.role?.addManagedPolicy({managedPolicyArn: 'arn:aws:iam::aws:policy/CloudWatchLogsReadOnlyAccess'});
 
     // deploy to production
-    pipeline.addApplicationStage(new AuditServiceDeployStage(this, 'Production', {
-      logicalEnv: 'production'
+    const productionEnvName = 'production';
+
+    // networking
+    // database
+    // service
+    pipeline.addApplicationStage(new AuditServiceDeployStage(this, 'AuditServiceProduction', {
+      logicalEnv: productionEnvName
     }), {
       manualApprovals: true
     });

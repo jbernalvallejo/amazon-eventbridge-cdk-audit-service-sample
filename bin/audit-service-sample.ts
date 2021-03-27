@@ -5,14 +5,14 @@
 
 import 'source-map-support/register';
 import { App } from '@aws-cdk/core';
-import { PipelineStack } from '../lib/pipeline-stack';
+import { PipelineStack as ServicePipelineStack } from '../lib/pipeline-stack';
 
 const app = new App();
-new PipelineStack(app, 'AuditServicePipeline', {
-    env: {
-        account: process.env.CDK_DEFAULT_ACCOUNT,
-        region: process.env.CDK_DEFAULT_REGION
-    }
+new ServicePipelineStack(app, 'AuditServicePipeline', {
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION
+  }
 });
 
 app.synth();
