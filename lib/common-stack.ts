@@ -22,7 +22,7 @@ export class CommonStack extends cdk.Stack {
     const cluster = new DatabaseCluster(this, 'Database', {
       dbClusterName: `${prefix}-audit-events-db`,
       masterUser: {
-        username: 'user'
+        username: 'docdb'
       },
       instanceProps: {
         instanceType: InstanceType.of(InstanceClass.T3, InstanceSize.MEDIUM),

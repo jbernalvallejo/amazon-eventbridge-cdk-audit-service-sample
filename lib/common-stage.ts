@@ -15,7 +15,7 @@ export class CommonDeployStage extends Stage {
     super(scope, id, props);
     
     const logicalEnv = props?.logicalEnv || 'dev';
-    const stack = new CommonStack(this, 'NetworkingStack', {logicalEnv});
+    const stack = new CommonStack(this, 'CommonStack', {logicalEnv});
 
     Tags.of(stack).add('environment', logicalEnv);
   }
