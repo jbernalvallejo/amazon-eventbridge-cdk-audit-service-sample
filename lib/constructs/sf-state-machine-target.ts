@@ -55,6 +55,7 @@ export class StateMachineTarget extends Construct {
     saveToDocDbRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'));
     // TODO narrow down to only need operation: read a particular secret
     saveToDocDbRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'));
+    saveToDocDbRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaVPCAccessExecutionRole"));
 
     new Function(this, 'SaveToDocumentDbFn', {
       functionName: `${prefix}-save-to-docdb`,
@@ -64,7 +65,8 @@ export class StateMachineTarget extends Construct {
       environment: {
         AUDIT_DB_SECRET_NAME: Fn.importValue(`${prefix}-audit-db-secret-name`)
       },
-      role: saveToDocDbRole
+      role: saveToDocDbRole,
+      vpc
     });
 
     // dynamodb table

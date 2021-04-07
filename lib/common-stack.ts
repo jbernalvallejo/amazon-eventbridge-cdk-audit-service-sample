@@ -15,10 +15,12 @@ export class CommonStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: CommonStackProps) {
     super(scope, id, props);
 
+    // vpc
     const prefix = props?.logicalEnv;
     const vpc = new Vpc(this, 'Vpc');
     Tags.of(vpc).add('Name', `${prefix}-vpc`);
 
+    // documentdb cluster
     const cluster = new DatabaseCluster(this, 'Database', {
       dbClusterName: `${prefix}-audit-events-db`,
       masterUser: {
