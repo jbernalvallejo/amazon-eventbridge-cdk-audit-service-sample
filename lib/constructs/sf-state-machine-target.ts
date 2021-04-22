@@ -65,6 +65,12 @@ export class StateMachineTarget extends Construct {
       sortKey: {name: 'Ts', type: AttributeType.NUMBER}	
     });
 
+    this.table.addGlobalSecondaryIndex({	
+      indexName: 'search-by-author-and-entity',	
+      partitionKey: {name: 'Author', type: AttributeType.STRING},	
+      sortKey: {name: 'Entity', type: AttributeType.STRING}	
+    });
+
     // state machine
     const saveToS3Job = new tasks.LambdaInvoke(this, 'SaveToS3', {
       lambdaFunction: saveToS3Fn,
