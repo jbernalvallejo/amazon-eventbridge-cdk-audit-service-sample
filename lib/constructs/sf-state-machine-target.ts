@@ -62,7 +62,7 @@ export class StateMachineTarget extends Construct {
     this.table.addGlobalSecondaryIndex({	
       indexName: 'search-by-author',	
       partitionKey: {name: 'Author', type: AttributeType.STRING},	
-      sortKey: {name: 'Ts', type: AttributeType.NUMBER}	
+      sortKey: {name: 'UpdatedTs', type: AttributeType.NUMBER}	
     });
 
     this.table.addGlobalSecondaryIndex({	
